@@ -1,33 +1,41 @@
 import { useEffect, useRef } from 'react';
 import Data from './Data.js';
-import useMarkdownToJson from './TransformMD.jsx'
+import useMarkdownToJson from './MDtoJSON.jsx'
 
 const MindMap = ( {setActiveTasks, activeTasks} ) => {
     const jsonData = useMarkdownToJson(Data)
     const mindMapRef = useRef(null);
 
     const getLeafNodeNames = (node) => {
-    let leafNames = [];
-  
-    const traverse = (currentNode) => {
-        if (!currentNode.children || currentNode.children.length === 0) {
-            const textContent = currentNode.content.replace(/<[^>]*>/g, '');
-            leafNames.push(textContent);
-            console.log(textContent);
-        } else {
-            currentNode.children.forEach(child => traverse(child));
-        }
-    };
-
-    traverse(node);
-    return leafNames;
+        let leafNames = [];
+        const traverse = (currentNode) => {
+            if (!currentNode.children || currentNode.children.length === 0) {
+                const textContent = currentNode.content.replace(/<[^>]*>/g, '');
+                leafNames.push(textContent);
+            } else {
+                currentNode.children.forEach(child => traverse(child));
+            }
+        };
+        traverse(node);
+        return leafNames;
     }
 
     const addToTaskList = (newTask) => {
-        console.log(getLeafNodeNames(jsonData));
+        if (newTask.target.localName === 'div' && newTask.target.__data__.children === null) { // Checking if the node is a legitimate target
 
-        if (newTask.target.localName === 'div' && newTask.target.__data__.children === null)
-            setActiveTasks([...activeTasks, newTask.target.innerHTML]);
+            setActiveTasks(currentTasks => { // Functionally update the currentTasks array based on the node click state
+                const taskContent = newTask.target.innerHTML;
+                const isTaskActive = currentTasks.includes(taskContent);
+        
+                if (isTaskActive) {
+                    return currentTasks.filter(task => task !== taskContent); // if the node is in the array, filter it out/remove it.
+                } else if (currentTasks.length <= 6) {
+                    return [...currentTasks, taskContent]; // otherwise, add it to the existing array if we have room (equal or under 6 active tasks)
+                }
+                return currentTasks;
+            });
+            
+        }
     };
 
     const loadScripts = () => {
@@ -46,17 +54,30 @@ const MindMap = ( {setActiveTasks, activeTasks} ) => {
     };
 
     useEffect(() => {
-        loadScripts();
+        const applyActiveTaskStyling = () => {
+            document.querySelectorAll('.markmap-node div').forEach(node => {
+                if (activeTasks.includes(node.innerHTML)) {
+                    node.classList.add('task-selected');
+                } else {
+                    node.classList.remove('task-selected');
+                }
+            });
+        };
+    
+        applyActiveTaskStyling();
+    
+    }, 
+    [activeTasks, jsonData]);
 
+    useEffect(() => {
+        loadScripts();
         const initializeMarkmap = () => {
         const { markmap } = window;
-
         if (markmap && mindMapRef.current) {
             window.mm = markmap.Markmap.create(mindMapRef.current, null, jsonData);
         }
         };
         window.addEventListener('load', initializeMarkmap);
-
         // Cleanup
         return () => {
             window.removeEventListener('load', initializeMarkmap);
@@ -65,7 +86,7 @@ const MindMap = ( {setActiveTasks, activeTasks} ) => {
 
     return (
         <div>
-        <svg ref={mindMapRef} onClick={(e) => addToTaskList(e)} style={{ width: '100vw', height: '100vh' }}></svg>
+            <svg ref={mindMapRef} onClick={(e) => addToTaskList(e)} style={{ width: '100vw', height: '100vh' }}></svg>
         </div>
     );
 };

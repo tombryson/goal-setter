@@ -1,14 +1,33 @@
 #root {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+  padding: 1rem;
 }
 
-* {
-  overflow: none;
+svg.markmap {
+  height: 60vh!important;
+}
+
+g {
+  cursor: pointer;
 }
 
 svg {
   border: solid red 2px;
+  border-radius: 6px;
+  margin: 0 auto;
+
+}
+
+.task-selected {
+  font-weight: bold;
+  color: black;
+  text-wrap: nowrap;
+  background-color: greenyellow;
+}
+
+.active-task-list {
+  height: 120px;
+  width: 500px;
+  text-align: left;
 }

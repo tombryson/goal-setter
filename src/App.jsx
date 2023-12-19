@@ -3,29 +3,12 @@ import { useState, useEffect } from 'react'
 import MindMap from './components/MindMap.jsx';
 
 function App() {
-  const [activeTasks, setActiveTasks] = useState(["task1", "task2"]);
-
-  function applyActiveTaskStyling() {
-      const tasks = document.getElementsByClassName("markmap-node");
-
-      console.log(tasks);
-
-      if (tasks && tasks.length > 0) {
-        const tasksArray = [Array.from(tasks[0])];
-        console.log(tasksArray);
-      }
-
-  }
-
-  useEffect(() => {
-      applyActiveTaskStyling();
-  },
-  [])
+  const [activeTasks, setActiveTasks] = useState([]);
 
   return (
     <>
   <MindMap activeTasks={activeTasks} setActiveTasks={setActiveTasks}/>
-  <div>
+  <div className='active-task-list'>
     <ol>
       {
         activeTasks.map((task, index) => (
